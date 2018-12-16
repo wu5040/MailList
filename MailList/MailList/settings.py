@@ -79,9 +79,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'MailList',
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',
+        'USER': 'mysql_user',
+        'PASSWORD': 'mysql_user',
+        'HOST': '47.106.188.7',
         'PORT': '3306'
     }
 }

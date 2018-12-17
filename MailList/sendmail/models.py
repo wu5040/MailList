@@ -2,6 +2,7 @@ from django.db import models
 
 # Create your models here.
 
+
 class Mails(models.Model):
     '''
         邮件数据结构设计
@@ -18,16 +19,46 @@ class Mails(models.Model):
     mailfrom = models.CharField(max_length=30, default="")
     mailto = models.CharField(max_length=30, default="")
     mailtext = models.TextField()
-    deleted=models.BooleanField(default=False)
+    deleted = models.BooleanField(default=False)
 
     class Meta:
-        ordering=('created',)
+        ordering = ('created',)
 
-class RcptGroup(models.Model):
+
+class RcptMembers(models.Model):
+    '''
+        收件人信息
+    '''
     created = models.DateTimeField(auto_now_add=True)
-    GroupName= models.CharField(max_length=50, default="新建分组")
-    GroupMembers=models.TextField()
-    deleted=models.BooleanField(default=False)
+    name = models.CharField(max_length=10)
+    gender = models.CharField(max_length=4)
+    mailAddress = models.CharField(max_length=30)
+    deleted = models.BooleanField(default=False)
 
     class Meta:
-        ordering=('created',)
+        ordering = ('created',)
+
+
+class RcptGroups(models.Model):
+    '''
+        收件人群组
+    '''
+    # owner
+    created = models.DateTimeField(auto_now_add=True)
+    GroupName = models.CharField(max_length=50, default="新建分组")
+    # GroupMembers=models.TextField()
+    deleted = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ('created',)
+
+
+class RcptGroups_Members(models.Model):
+    '''
+        群组——成员关系
+    '''
+    GroupName = models.CharField(max_length=50, default="")
+    MembersAddress = models.CharField(max_length=30, default="")
+
+    class Meta:
+        ordering = ('id',)

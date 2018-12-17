@@ -2,8 +2,10 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from sendmail.models import Mails, RcptGroup
-from sendmail.serializers import MailsSerializer, RcptGroupSerializer
+from django.http import QueryDict
+
+from sendmail.models import Mails, RcptGroups,RcptMembers,RcptGroups_Members
+from sendmail.serializers import MailsSerializer, RcptGroupsSerializer,RcptMembersSerializer,RcptGroups_MembersSerializer
 
 import pika
 import threading
@@ -52,6 +54,8 @@ def mail_detail(request, pk, format=None):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+
+
 @api_view(['POST'])
 def send_mail(request):
     '''
@@ -76,12 +80,36 @@ def send_mail(request):
 @api_view(['POST'])
 def create_group(request):
     if request.method == 'POST':
-        serializer = RcptGroupSerializer(data=request.data)
+        groupName=request.data['GroupName']
+        GNQueryDict=QueryDict('GroupName='+groupName)
+        serializer=RcptGroupsSerializer(data=GNQueryDict)
         if serializer.is_valid():
             serializer.save()
-            return Response(status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+        file=request.data['GroupMembers']
+        filestr=file.read().decode()
+        MembersList=filestr.split(',')
 
+        QueryList=[]
+        for i in MembersList:
+            QueryList.append(RcptGroups_Members(GroupName=groupName,MembersAddress=i))
+        RcptGroups_Members.objects.bulk_create(QueryList)
+
+        return Response(status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+        # if serializer.is_valid():
+        #     serializer.save()
+        #     return Response(status=status.HTTP_200_OK)
+        # return Response(status=status.HTTP_400_BAD_REQUEST)
+
+# @api_view(['POST'])
+# def add_members(request):
+#     if request.method == 'POST':
+#         serializer=RcptGroups_MembersSerializer(data=request.data)
+#         if serializer.is_valid():
 
 @api_view(['POST'])
 def send_groupmail(request):
@@ -98,13 +126,14 @@ def send_groupmail(request):
             TEXT = request.POST.get('mailtext')
 
             try:
-                group_members = RcptGroup.objects.get(GroupName=TO)
-            except RcptGroup.DoesNotExist:
+                GM_Query = RcptGroups_Members.objects.filter(GroupName=TO).values()
+            except RcptGroups_Members.DoesNotExist:
                 return Response(status=status.HTTP_404_NOT_FOUND)
+            # serializer = RcptGroups_MembersSerializer(group_members)
+            members_list=[]
 
-            serializer = RcptGroupSerializer(group_members)
-            members=serializer.data['GroupMembers']
-            members_list=members.split(",")
+            for i in GM_Query:
+                members_list.append(i['MembersAddress'])
             print(members_list)
 
             mq_write(channel, FROM, members_list, SUBJECT, TEXT)  # 写入RabbitMQ，并发送

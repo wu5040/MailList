@@ -51,5 +51,4 @@ def mq_read_start(channel):
     channel.basic_consume(read_callback,
                           queue='mail_balance',
                           no_ack=True)
-#     print(' [*] Waiting for messages. To exit press CTRL+C')
     channel.start_consuming()

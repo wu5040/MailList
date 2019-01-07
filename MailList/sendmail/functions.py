@@ -20,7 +20,6 @@ def send_async_email(FROM, TO, SUBJECT, TEXT):
     SERVER = 'localhost'
     msg = MIMEMultipart('alternative')
 
-    # 包含了非ASCII字符，需要使用unicode
     msg['Subject'] = SUBJECT
     msg['From'] = FROM
     msg['To'] = ', '.join(TO)
@@ -28,7 +27,9 @@ def send_async_email(FROM, TO, SUBJECT, TEXT):
     part2 = MIMEText(TEXT, 'html', 'utf-8')
     msg.attach(part1)
     msg.attach(part2)
+
     server = smtplib.SMTP(SERVER)
+    
     server.sendmail(FROM, TO, msg.as_string())
     server.quit()
 
